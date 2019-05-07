@@ -11,31 +11,37 @@ namespace OneIdentity.SafeguardDotNet
         {
             try
             {
-                X509Certificate2 cert;
                 using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
                 {
-                    store.Open(OpenFlags.ReadOnly);
-                    cert = store.Certificates.OfType<X509Certificate2>()
-                        .FirstOrDefault(x => x.Thumbprint == thumbprint);
+                    var cert = GetClientCertificateFromStore(thumbprint, store);
+                    if (cert != null) return cert;
                 }
-                if (cert == null)
+                using (var store = new X509Store(StoreName.My, StoreLocation.LocalMachine))
                 {
-                    using (var store = new X509Store(StoreName.My, StoreLocation.LocalMachine))
-                    {
-                        store.Open(OpenFlags.ReadOnly);
-                        cert = store.Certificates.OfType<X509Certificate2>()
-                            .FirstOrDefault(x => x.Thumbprint == thumbprint);
-                        if (cert == null)
-                            throw new SafeguardDotNetException("Unable to find certificate matching " +
-                                                               $"thumbprint={thumbprint} in Computer or User store");
-                    }
+                    var cert = GetClientCertificateFromStore(thumbprint, store);
+                    if (cert != null) return cert;
                 }
-                return cert;
+                throw new SafeguardDotNetException("Unable to find certificate matching " +
+                                                   $"thumbprint={thumbprint} in Computer or User store");
             }
             catch (Exception ex)
             {
                 throw new SafeguardDotNetException($"Failure to get certificate from thumbprint={thumbprint}", ex);
             }
+        }
+
+        internal static X509Certificate2 GetClientCertificateFromStore(string thumbprint, X509Store store)
+        {
+            store.Open(OpenFlags.ReadOnly);
+            foreach (var cert in store.Certificates)
+            {
+                if (string.IsNullOrEmpty(cert.Thumbprint)) continue;
+                if (cert.Thumbprint.Equals(thumbprint, StringComparison.OrdinalIgnoreCase))
+                {
+                    return cert;
+                }
+            }
+            return null;
         }
 
         public static X509Certificate2 GetClientCertificateFromFile(string filepath, SecureString password)

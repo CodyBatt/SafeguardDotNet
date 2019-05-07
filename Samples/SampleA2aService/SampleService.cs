@@ -112,11 +112,16 @@ namespace SampleA2aService
         {
             ConfigUtils.CheckForDebugHook();
 
+            Log.Information("Service starting up");
+
             // connect to Safeguard
             _connection = Safeguard.Connect(_safeguardAddress, _safeguardClientCertificateThumbprint,
                 _safeguardApiVersion, _safeguardIgnoreSsl);
+            Log.Information("Connected to Safeguard");
+
             _a2AContext = Safeguard.A2A.GetContext(_safeguardAddress, _safeguardClientCertificateThumbprint,
                 _safeguardApiVersion, _safeguardIgnoreSsl);
+            Log.Information("Got Safguard Context");
 
             // figure out what API keys to monitor
             GetApiKeysFromA2ARegistrations();
@@ -127,10 +132,13 @@ namespace SampleA2aService
             // start the listeners
             foreach(var monitored in _monitoredPasswords)
                 StartListener(monitored);
+
+            Log.Information("Service started");
         }
 
         public void Stop()
         {
+            Log.Information("Service is shutting down");
             // shut everything down
             foreach (var listener in _listeners)
             {
@@ -139,6 +147,7 @@ namespace SampleA2aService
             }
             _connection?.Dispose();
             _a2AContext?.Dispose();
+            Log.Information("Shutdown complete");
         }
     }
 }

@@ -15,13 +15,13 @@ namespace OneIdentity.SafeguardDotNet.Authentication
         public CertificateAuthenticator(string networkAddress, string certificateThumbprint, int apiVersion,
             bool ignoreSsl) : base(networkAddress, apiVersion, ignoreSsl)
         {
-            _clientCertificate = new CertificateContext(certificateThumbprint);
+            _clientCertificate = new CertificateContext(new StoreCertificateResolver(certificateThumbprint));
         }
 
         public CertificateAuthenticator(string networkAddress, string certificatePath, SecureString certificatePassword,
             int apiVersion, bool ignoreSsl) : base(networkAddress, apiVersion, ignoreSsl)
         {
-            _clientCertificate = new CertificateContext(certificatePath, certificatePassword);
+            _clientCertificate = new CertificateContext(new FileCertificateResolver(certificatePath, certificatePassword));
         }
 
         private CertificateAuthenticator(string networkAddress, CertificateContext clientCertificate, int apiVersion,
@@ -43,7 +43,7 @@ namespace OneIdentity.SafeguardDotNet.Authentication
                     grant_type = "client_credentials",
                     scope = "rsts:sts:primaryproviderid:certificate"
                 });
-            RstsClient.ClientCertificates = new X509Certificate2Collection() { _clientCertificate.Certificate };
+            RstsClient.ClientCertificates = new X509Certificate2Collection { _clientCertificate.Certificate };
             var response = RstsClient.Execute(request);
             if (response.ResponseStatus != ResponseStatus.Completed)
                 throw new SafeguardDotNetException($"Unable to connect to RSTS service {RstsClient.BaseUrl}, Error: " +

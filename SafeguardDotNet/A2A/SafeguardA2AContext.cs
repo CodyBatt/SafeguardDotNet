@@ -45,8 +45,8 @@ namespace OneIdentity.SafeguardDotNet.A2A
                 _a2AClient.RemoteCertificateValidationCallback += (sender, certificate, chain, errors) => true;
             }
             _clientCertificate = !string.IsNullOrEmpty(_certificateThumbprint)
-                ? new CertificateContext(_certificateThumbprint)
-                : new CertificateContext(_certificatePath, _certificatePassword);
+                ? new CertificateContext(new StoreCertificateResolver(_certificateThumbprint))
+                : new CertificateContext(new FileCertificateResolver(_certificatePath, _certificatePassword));
             _a2AClient.ClientCertificates = new X509Certificate2Collection() { _clientCertificate.Certificate };
         }
 

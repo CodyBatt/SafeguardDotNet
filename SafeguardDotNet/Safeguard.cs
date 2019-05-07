@@ -2,6 +2,8 @@
 using OneIdentity.SafeguardDotNet.A2A;
 using OneIdentity.SafeguardDotNet.Authentication;
 using OneIdentity.SafeguardDotNet.Event;
+using System.Runtime.CompilerServices;
+[assembly:InternalsVisibleTo("SafeguardDotNet.Test")]
 
 namespace OneIdentity.SafeguardDotNet
 {
